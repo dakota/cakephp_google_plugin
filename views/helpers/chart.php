@@ -221,15 +221,6 @@
          */
         var $__apiUrl = 'http://chart.apis.google.com/chart?';
 
-        /**
-         * array of errors.
-         *
-         * holds a list of errors / warnings that were generated while trying
-         * generate the query string for the api
-         *
-         * @var array
-         * @access private
-         */
         var $__errors = array();
 
         /**
@@ -418,7 +409,7 @@
             {
                 return $this->__checkCache($absolute);
             }
-
+			
             $this->__reset();
 
             $this->__setChartType( $name );
@@ -490,7 +481,7 @@
             }
 			else
 			{
-				$this->__errors[] = 'File <b>'.$this->cachePath.$file.'</b> does not exist';
+				$this->__errors .= 'File <b>'.$this->cachePath.$file.'</b> does not exist';
 			}
         }
 
@@ -558,7 +549,7 @@
                 }
                 else
                 {
-                    $param[$k][] = $fill['color'];
+	            $param[$k][] = $fill['color'];
                 }
 
                 if ( isset( $param[$k] ) )
@@ -658,6 +649,15 @@
         	$this->__setData($type, $data);
         }
         
+		function check_url($url) { 
+			$fp = @fopen($url, 'r'); 
+			if($fp) { 
+				fclose($fp); 
+				return TRUE; 
+			} 
+			return FALSE; 
+		}		
+		
         function __render( $data )
         {
             $data['html'] = array();
@@ -674,34 +674,39 @@
             }
 
             $this->output = $this->__apiUrl.implode( $this->paramSeperator, $this->return );
+			
+			if(!isset($data['exitOnError']) || $data['exitOnError'] == false || $this->check_url($this->output)) {
+				$graph = $this->Html->image(
+					$this->output,
+					$data['html'],
+					array('escape' => false)
+				);
 
-            $graph = $this->Html->image(
-                $this->output,
-                $data['html'],
-                array('escape' => false)
-            );
+				if ( $this->cache )
+				{
+					$this->__writeCache( $this->output );
+				}
 
-            if ( $this->cache )
-            {
-                $this->__writeCache( $this->output );
-            }
-
-            if ( $this->debug )
-            {
-                $graph .= '<div style="border:1px dotted gray;">';
-                    $graph .= '<h4>Query String</h4>';
-                    $graph .= '<p>'.$this->output.'</p>';
-                    if ( is_array( $this->__errors ) && !empty( $this->__errors ) )
-                    {
-                        $graph .= '<h4>Errors</h4>';
-                        foreach( $this->__errors as $error )
-                        {
-                            $graph .= '<p>'.$error.'</p>';
-                        }
-                    }
-                $graph .= '</div>';
-            }
-
+				if ( $this->debug )
+				{
+					$graph .= '<div style="border:1px dotted gray;">';
+						$graph .= '<h4>Query String</h4>';
+						$graph .= '<p>'.$this->output.'</p>';
+						if ( is_array( $this->__errors ) && !empty( $this->__errors ) )
+						{
+							$graph .= '<h4>Errors</h4>';
+							foreach( $this->__errors as $error )
+							{
+								$graph .= '<p>'.$error.'</p>';
+							}
+						}
+					$graph .= '</div>';
+				}
+			}
+			else {
+				$graph = false;
+			}
+			
             return $graph;
         }
 
