@@ -426,11 +426,11 @@ class ChartHelper extends AppHelper {
 		foreach ($data as $key => $value) {
 			if (is_array($name)) {
 				if (!isset($this->setup[$name['name']][$key])) {
-					$this->__errors = __('Param "' . $key . '" is not supported in chart type "' . $name . '"', true);
+					$this->__errors[] = __('Param "' . $key . '" is not supported in chart type "' . $name . '"', true);
 					continue;
 				}
 			} else if (!isset($this->setup[$name][$key])) {
-				$this->__errors = __('Param "' . $key . '" is not supported in chart type "' . $name . '"', true);
+				$this->__errors[] = __('Param "' . $key . '" is not supported in chart type "' . $name . '"', true);
 				continue;
 			}
 
@@ -507,7 +507,7 @@ class ChartHelper extends AppHelper {
 
 	function __reset() {
 		$this->output = null;
-		$this->__errors = null;
+		$this->__errors = array();
 		$this->__debug = null;
 		$this->return = null;
 	}
